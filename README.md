@@ -5,5 +5,5 @@ heads-up is a server that uses [Tile38](https://tile38.com) to store the locatio
 ## Run
 
 ```sh
-bin/heads-up -t localhost:9851 -i 10 -s 5000
+heads-up -t localhost:9851 -i 5 -s 5000 -l 33.4484,112.0740
 ```
