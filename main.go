@@ -63,9 +63,10 @@ Options:
   -s            size of geofence in meters
   -t            tile38 address & port. format: "127.0.0.1:9851"
   -l            location for geofence. format: 33.4484,112.0740
+  -e            endpoint for the notification to be sent
 
 Examples: 
-  %[3]s -t localhost:9851 -i 10 -s 5000       run the server
+  %[3]s -t localhost:9851 -i 10 -s 5000 -l 33.4484,112.0740       run the server
 `
 
 func main() {
@@ -74,6 +75,7 @@ func main() {
 	var geofenseSizeFlag string
 	var tile38AddressFlag string
 	var locationFlag string
+	var endpointFlag string
 
 	flag.Usage = func() {
 		w := os.Stderr
@@ -91,6 +93,7 @@ func main() {
 	flag.StringVar(&geofenseSizeFlag, "s", "", "")
 	flag.StringVar(&tile38AddressFlag, "t", "", "")
 	flag.StringVar(&locationFlag, "l", "", "")
+	flag.StringVar(&endpointFlag, "e", "", "")
 	flag.Parse()
 
 	if vers {
@@ -109,10 +112,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	if endpointFlag == "" {
+		fmt.Println("error: endpoint required")
+		os.Exit(1)
+	}
+
 	// connect to Tile38
 	c, err := redis.Dial("tcp", tile38AddressFlag)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("error: tile38 - ", err)
 		os.Exit(1)
 	}
 	defer c.Close()
@@ -125,10 +133,10 @@ func main() {
 
 	loc := strings.Split(locationFlag, ",")
 
-	// set the geofence
-	_, err = c.Do("NEARBY", "earth-orbit", "FENCE", "DETECT", "enter", "POINT", loc[0], loc[1], geofenseSizeFlag)
+	// set the geofence notification
+	_, err = c.Do("SETHOOK", "iss-notify", endpointFlag, "NEARBY", "earth-orbit", "FENCE", "POINT", loc[0], loc[1], geofenseSizeFlag)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("error: tile38 - ", err)
 		os.Exit(1)
 	}
 
