@@ -101,6 +101,7 @@ func main() {
 		return
 	}
 
+	// make sure the tile38Address isn't an empty
 	if tile38AddressFlag == "" {
 		fmt.Println("error: tile38 address required")
 		os.Exit(1)
@@ -112,6 +113,7 @@ func main() {
 		os.Exit(1)
 	}
 
+	// make sure the endpoint isn't an empty
 	if endpointFlag == "" {
 		fmt.Println("error: endpoint required")
 		os.Exit(1)

@@ -2,6 +2,7 @@ GO ?= go
 GLIDE ?= glide
 GOFLAGS = CGO_ENABLED=0
 LINTER ?= golint
+DOCKER ?= docker
 
 BINDIR := bin
 BINARY := heads-up
@@ -9,17 +10,25 @@ BINARY := heads-up
 VERSION := 0.1.0
 LDFLAGS = -ldflags "-X main.gitSHA=$(shell git rev-parse HEAD) -X main.version=$(VERSION) -X main.name=$(BINARY)"
 
+LINUX_BUILD = GOOS=linux $(GOFLAGS) $(GO) build -v -o $(BINDIR)/$(BINARY) $(LDFLAGS)
+DARWIN_BUILD = GOOS=darwin $(GOFLAGS) $(GO) build -v -o $(BINDIR)/$(BINARY) $(LDFLAGS)
+
 OS := $(shell uname)
 
 .PHONY:
 $(BINDIR)/$(BINARY): clean
 	if [ ! -d $(BINDIR) ]; then mkdir $(BINDIR); fi
 ifeq ($(OS),Darwin)
-	GOOS=darwin $(GOFLAGS) $(GO) build -v -o $(BINDIR)/$(BINARY) $(LDFLAGS)
+	$(DARWIN_BUILD)
 endif
 ifeq ($(OS),Linux)
-	GOOS=linux $(GOFLAGS) $(GO) build -v -o $(BINDIR)/$(BINARY) $(LDFLAGS)
+	$(LINUX_BUILD)
 endif
+
+.PHONY:
+docker-image: clean
+	$(LINUX_BUILD)
+	docker build -t $(BINARY) .
 
 .PHONY:
 test:
